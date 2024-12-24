@@ -158,7 +158,7 @@ public class SlidePuzzle extends Game {
             System.out.printf("\n動かす数字を入力：");
             int movingNum = this.scanner.nextInt();
 
-            // 盤面に含まれている値かを確認
+            // 盤面に含まれている値なのかを確認
             if (movingNum > 0 && movingNum <= this.boardSize - 1) {
                 Position movingPos = getMovingPos(movingNum);
                 swapSpacePos(movingPos);
