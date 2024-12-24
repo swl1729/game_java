@@ -14,12 +14,16 @@ public class SlidePuzzle extends Game {
 
     private static final int SHUFFLE_ITERATION = 100000;
 
+    // クリア判定
+    private Boolean isGameClear;
+
     public SlidePuzzle(String name) {
         super(name);
         this.boardWidth = selectBoardWidth();
         this.boardSize = this.boardWidth * this.boardWidth;
         this.board = initBoard();
         shuffleBoard();
+        this.isGameClear = false;
     }
 
     // boardWidthをユーザーが選択する
@@ -133,6 +137,24 @@ public class SlidePuzzle extends Game {
         return movingPos;
     }
 
+    // クリア判定
+    private Boolean judgeGameClear() {
+        int boardIdx = 0;
+        for (int ri = 0; ri < this.boardWidth; ri++) {
+            for (int ci = 0; ci < this.boardWidth; ci++) {
+                //右下の値は無視する（空白想定）
+                if (ri == this.boardWidth - 1 && ci == this.boardWidth - 1) {
+                    break;
+                }
+                //一致しなかった時点でfalseを返す
+                if (board[ri][ci] != ++boardIdx) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private void printBoard() {
         printManyLineBreak();
         for (int ri = 0; ri < boardWidth; ri++) {
@@ -165,6 +187,10 @@ public class SlidePuzzle extends Game {
             }
 
             // Todo:終了判定
+            this.isGameClear = judgeGameClear();
+            if (this.isGameClear) {
+                break;
+            }
         }
     }
 }
