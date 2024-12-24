@@ -3,7 +3,7 @@ package game;
 import java.util.Random;
 
 public class SlidePuzzle extends Game {
-    private static final int MIN_WIDTH = 3;
+    private static final int MIN_WIDTH = 2;
     private static final int MAX_WIDTH = 10;
     private int boardWidth;
     private int boardSize;
