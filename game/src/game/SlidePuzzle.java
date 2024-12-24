@@ -142,11 +142,11 @@ public class SlidePuzzle extends Game {
         int boardIdx = 0;
         for (int ri = 0; ri < this.boardWidth; ri++) {
             for (int ci = 0; ci < this.boardWidth; ci++) {
-                //右下の値は無視する（空白想定）
+                // 右下の値は無視する（空白想定）
                 if (ri == this.boardWidth - 1 && ci == this.boardWidth - 1) {
                     break;
                 }
-                //一致しなかった時点でfalseを返す
+                // 一致しなかった時点でfalseを返す
                 if (board[ri][ci] != ++boardIdx) {
                     return false;
                 }
