@@ -192,5 +192,9 @@ public class SlidePuzzle extends Game {
                 break;
             }
         }
+
+        // ゲーム終了時の表示
+        printBoard();
+        System.out.printf("\nGAME CLEAR!!\n");
     }
 }
