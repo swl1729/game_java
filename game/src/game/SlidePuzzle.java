@@ -11,8 +11,7 @@ public class SlidePuzzle extends Game {
     private int[][] board;
 
     private static final int SPACE_POS_VALUE = 0;
-    private int spacePosRow;
-    private int spacePosCol;
+    private Position spacePos;
 
     private static final int SHUFFLE_ITERATION = 100000;
 
@@ -20,19 +19,18 @@ public class SlidePuzzle extends Game {
         super(name);
         this.boardWidth = selectBoardWidth();
         this.boardSize = this.boardWidth * this.boardWidth;
-        this.board = initBoard(this.boardWidth);
-        shuffleBoard(this.board, this.boardWidth);
+        this.board = initBoard();
+        shuffleBoard();
     }
 
     // boardWidthをユーザーが選択する
     private int selectBoardWidth() {
-        Scanner scanner = new Scanner(System.in);
         int boardWidth = MIN_WIDTH;
         while (true) {
             System.out.printf("盤面幅を入力してください。\n");
             System.out.printf("※%dから%dの整数値\n", MIN_WIDTH, MAX_WIDTH);
             System.out.printf("盤面幅：");
-            boardWidth = scanner.nextInt();
+            boardWidth = this.scanner.nextInt();
 
             // 不正な値ではないか確認
             if (boardWidth >= MIN_WIDTH && boardWidth <= MAX_WIDTH) {
@@ -42,20 +40,18 @@ public class SlidePuzzle extends Game {
                 System.out.printf("%dは不正な値です。\n", boardWidth);
             }
         }
-        scanner.close();
         return boardWidth;
     }
 
     // boardの初期化
-    private int[][] initBoard(int boardWidth) {
-        int[][] board = new int[boardWidth][boardWidth];
+    private int[][] initBoard() {
+        int[][] board = new int[this.boardWidth][this.boardWidth];
         int boardIdx = 0;
-        for (int ri = 0; ri < boardWidth; ri++) {
-            for (int ci = 0; ci < boardWidth; ci++) {
-                if (ri == boardWidth - 1 && ci == boardWidth - 1) {
+        for (int ri = 0; ri < this.boardWidth; ri++) {
+            for (int ci = 0; ci < this.boardWidth; ci++) {
+                if (ri == this.boardWidth - 1 && ci == this.boardWidth - 1) {
                     board[ri][ci] = SPACE_POS_VALUE;
-                    this.spacePosRow = ri;
-                    this.spacePosCol = ci;
+                    this.spacePos = new Position(ri, ci);
                 } else {
                     board[ri][ci] = ++boardIdx;
                 }
@@ -65,13 +61,13 @@ public class SlidePuzzle extends Game {
     }
 
     // boardをシャッフルする
-    private void shuffleBoard(int[][] board, int boardWidth) {
+    private void shuffleBoard() {
         Random random = new Random();
 
         // 空白位置を適当に動かすことでboardをシャッフルする
         for (int ite = 0; ite < SHUFFLE_ITERATION; ite++) {
-            int nextSpacePosRow = this.spacePosRow;
-            int nextSpacePosCol = this.spacePosCol;
+            int nextSpacePosRow = this.spacePos.getRowPos();
+            int nextSpacePosCol = this.spacePos.getColPos();
 
             // 乱数によって空白位置を動かす方向を決める
             int randomInt = random.nextInt(4);
@@ -89,30 +85,53 @@ public class SlidePuzzle extends Game {
                     nextSpacePosCol++;
                     break;
             }
-            swapSpacePos(board, boardWidth, nextSpacePosRow, nextSpacePosCol);
+            Position nextPos = new Position(nextSpacePosRow, nextSpacePosCol);
+            swapSpacePos(nextPos);
         }
     }
 
-    private Boolean swapSpacePos(
-            int[][] board,
-            int boardWidth,
-            int nextSpacePosRow,
-            int nextSpacePosCol) {
-        // 動かした先が不正な位置ではないかを確認
-        Boolean isNormalPos = (nextSpacePosRow >= 0 &&
-                nextSpacePosRow < boardWidth &&
-                nextSpacePosCol >= 0 &&
-                nextSpacePosCol < boardWidth);
+    // 空白位置を入れ替える
+    private Boolean swapSpacePos(Position nextPos) {
+        int currentSpacePosRow = this.spacePos.getRowPos();
+        int currentSpacePosCol = this.spacePos.getColPos();
+        int nextSpacePosRow = nextPos.getRowPos();
+        int nextSpacePosCol = nextPos.getColPos();
 
-        if (isNormalPos) {
+        // 動かした先が盤面内かを確認
+        Boolean isInsidePos = (nextSpacePosRow >= 0 &&
+                nextSpacePosRow < this.boardWidth &&
+                nextSpacePosCol >= 0 &&
+                nextSpacePosCol < this.boardWidth);
+
+        // 動かした先と今の位置が隣り合っているかを確認
+        Boolean isNextToPos = (Math.abs(nextSpacePosRow - currentSpacePosRow)
+                + Math.abs(nextSpacePosCol - currentSpacePosCol) == 1);
+
+        Boolean canSwap = isInsidePos && isNextToPos;
+        if (canSwap) {
             // 空白位置の入れ替え
-            int temp = board[nextSpacePosRow][nextSpacePosCol];
-            board[nextSpacePosRow][nextSpacePosCol] = board[this.spacePosRow][this.spacePosCol];
-            board[this.spacePosRow][this.spacePosCol] = temp;
-            this.spacePosRow = nextSpacePosRow;
-            this.spacePosCol = nextSpacePosCol;
+            int temp = this.board[nextSpacePosRow][nextSpacePosCol];
+            this.board[nextSpacePosRow][nextSpacePosCol] = this.board[currentSpacePosRow][currentSpacePosCol];
+            this.board[currentSpacePosRow][currentSpacePosCol] = temp;
+            this.spacePos.setRowPos(nextSpacePosRow);
+            this.spacePos.setColPos(nextSpacePosCol);
         }
-        return isNormalPos;
+        return canSwap;
+    }
+
+    // 動かしたい盤面の数字の座標を取得
+    private Position getMovingPos(int movingNum) {
+        Position movingPos = new Position(0, 0);
+        for (int ri = 0; ri < this.boardWidth; ri++) {
+            for (int ci = 0; ci < this.boardWidth; ci++) {
+                if (this.board[ri][ci] == movingNum) {
+                    movingPos.setRowPos(ri);
+                    movingPos.setColPos(ci);
+                    break;
+                }
+            }
+        }
+        return movingPos;
     }
 
     private void printBoard() {
@@ -134,6 +153,19 @@ public class SlidePuzzle extends Game {
     }
 
     public void play() {
-        printBoard();
+        while (true) {
+            printBoard();
+
+            System.out.printf("\n動かす数字を入力：");
+            int movingNum = this.scanner.nextInt();
+
+            // 盤面に含まれている値かを確認
+            if (movingNum > 0 && movingNum <= this.boardSize - 1) {
+                Position movingPos = getMovingPos(movingNum);
+                swapSpacePos(movingPos);
+            }
+
+            // Todo:終了判定
+        }
     }
 }
